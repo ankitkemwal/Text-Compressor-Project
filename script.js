@@ -12,7 +12,7 @@ class MinHeap {
 		this.heap_array.push(value);
 		this.up_heapify();
 	}
-	up_heapify() {
+	up_heapify() {		//heapify while going up in the tree
 		var current_index = this.size() - 1;
 		while (current_index > 0) {
 			var current_element = this.heap_array[current_index];
@@ -40,7 +40,7 @@ class MinHeap {
 			this.down_heapify();
 		}
 	}
-	down_heapify() {
+	down_heapify() {		//heapify while going down in the tree
 		var current_index = 0;
 		var current_element = this.heap_array[0];
 		while (current_index < this.size()) {
@@ -84,19 +84,21 @@ class MinHeap {
 }
 class Codec {
 	getCodes(node, curr_code) {
-		if (typeof (node[1]) === "string") {
-			this.codes[node[1]] = curr_code;
+		if (typeof (node[1]) === "string") { // base cond
+			this.codes[node[1]] = curr_code;		//replace with current code
 			return;
 		}
-		this.getCodes(node[1][0], curr_code + '0');
-		this.getCodes(node[1][1], curr_code + '1');
+		this.getCodes(node[1][0], curr_code + '0');	//left
+		this.getCodes(node[1][1], curr_code + '1');	//right
 	}
+	// creating string of coded tree
 	make_string(node) {
 		if (typeof (node[1]) === "string") {
 			return "'" + node[1];
 		}
 		return '0' + this.make_string(node[1][0]) + '1' + this.make_string(node[1][1]);
 	}
+	//store tree in form of array 
 	make_tree(tree_string) {
 		let node = [];
 		if (tree_string[this.index] === "'") {
@@ -111,10 +113,12 @@ class Codec {
 		node.push(this.make_tree(tree_string));
 		return node;
 	}
+	// map to store
 	encode(data) {
 		this.heap = new MinHeap();
 
 		var mp = new Map();
+		// freq count
 		for (let i = 0; i < data.length; i++) {
 			if (mp.has(data[i])) {
 				let foo = mp.get(data[i]);
@@ -124,26 +128,29 @@ class Codec {
 				mp.set(data[i], 1);
 			}
 		}
+		// data type bhe same in ===
 		if (mp.size === 0) {
 			let final_string = "zer#";
 
 			let output_message = "Compression complete and file will be downloaded automatically." + '\n' + "Compression Ratio : " + (data.length / final_string.length).toPrecision(6);
 			return [final_string, output_message];
 		}
-
+		// only 1 ch store in form of 0/1
 		if (mp.size === 1) {
 			let key, value;
 			for (let [k, v] of mp) {
 				key = k;
 				value = v;
 			}
-			let final_string = "one" + '#' + key + '#' + value.toString();
+			let final_string = "one" + '#' + key + '#' + value.toString();	//append 
 			let output_message = "Compression complete and file will be downloaded automatically." + '\n' + "Compression Ratio : " + (data.length / final_string.length).toPrecision(6);
 			return [final_string, output_message];
 		}
+		//push in heap
 		for (let [key, value] of mp) {
-			this.heap.push([value, key]);
+			this.heap.push([value, key]);		//value=freq, key=ch
 		}
+		// till only 1 element is left out, pop 2 ele and push back their combo
 		while (this.heap.size() >= 2) {
 			let min_node1 = this.heap.top();
 			this.heap.pop();
@@ -151,16 +158,18 @@ class Codec {
 			this.heap.pop();
 			this.heap.push([min_node1[0] + min_node2[0], [min_node1, min_node2]]);
 		}
+		//extract top most element now
 		var huffman_tree = this.heap.top();
 		this.heap.pop();
-		this.codes = {};
-		this.getCodes(huffman_tree, "");
+		this.codes = {};	//it having code stored in it
+		this.getCodes(huffman_tree, "");	//call
 
 		/// convert data into coded data
 		let binary_string = "";
 		for (let i = 0; i < data.length; i++) {
-			binary_string += this.codes[data[i]];
+			binary_string += this.codes[data[i]];	//encoded msg
 		}
+		// append 
 		let padding_length = (8 - (binary_string.length % 8)) % 8;
 		for (let i = 0; i < padding_length; i++) {
 			binary_string += '0';
@@ -174,7 +183,7 @@ class Codec {
 			}
 			encoded_data += String.fromCharCode(curr_num);
 		}
-		let tree_string = this.make_string(huffman_tree);
+		let tree_string = this.make_string(huffman_tree);	//store alph and its code
 		let ts_length = tree_string.length;
 		let final_string = ts_length.toString() + '#' + padding_length.toString() + '#' + tree_string + encoded_data;
 		let output_message = "Compression complete and file will be downloaded automatically." + '\n' + "Compression Ratio : " + (data.length / final_string.length).toPrecision(6);
@@ -183,34 +192,34 @@ class Codec {
 
 	decode(data) {
 		let k = 0;
-		let temp = "";
+		let temp = "";	//coded msg or tree string length
 		while (k < data.length && data[k] != '#') {
 			temp += data[k];
 			k++;
 		}
-		if (k == data.length){
+		if (k == data.length) {		//invalid file
 			alert("Invalid File! Please submit a valid De-Compressed file");
 			location.reload();
 			return;
 		}
-		if (temp === "zer") {
+		if (temp === "zer") {	//empty file
 			let decoded_data = "";
 			let output_message = "De-Compression complete and file will be downloaded automatically.";
 			return [decoded_data, output_message];
 		}
-		if (temp === "one") {
+		if (temp === "one") {	// only one ch is present
 			data = data.slice(k + 1);
 			k = 0;
-			temp = "";
+			temp = "";		//store ch
 			while (data[k] != '#') {
 				temp += data[k];
 				k++;
 			}
 			let one_char = temp;
-			data = data.slice(k + 1);
-			let str_len = parseInt(data);
+			data = data.slice(k + 1);	//substring func
+			let str_len = parseInt(data); 	// convert freq to int
 			let decoded_data = "";
-			for (let i = 0; i < str_len; i++) {
+			for (let i = 0; i < str_len; i++) {		//decode
 				decoded_data += one_char;
 			}
 			let output_message = "De-Compression complete and file will be downloaded automatically.";
@@ -232,14 +241,14 @@ class Codec {
 			temp += data[k];
 		}
 		data = data.slice(k);
-		let tree_string = temp;
+		let tree_string = temp;		// ch and its code
 		temp = "";
 		for (k = 0; k < data.length; k++) {
 			temp += data[k];
 		}
-		let encoded_data = temp;
+		let encoded_data = temp;		
 		this.index = 0;
-		var huffman_tree = this.make_tree(tree_string);
+		var huffman_tree = this.make_tree(tree_string);		//array of codes of ch
 
 		let binary_string = "";
 		for (let i = 0; i < encoded_data.length; i++) {
@@ -251,17 +260,18 @@ class Codec {
 			}
 			binary_string += curr_binary;
 		}
-		binary_string = binary_string.slice(0, -padding_length);
+		binary_string = binary_string.slice(0, -padding_length);	// - : piche ke eetne ch ko remove krdo
 		let decoded_data = "";
 		let node = huffman_tree;
+		// traversing tree to find the ch
 		for (let i = 0; i < binary_string.length; i++) {
 			if (binary_string[i] === '1') {
-				node = node[1];
+				node = node[1];		//represents right
 			}
 			else {
 				node = node[0];
 			}
-
+			
 			if (typeof (node[0]) === "string") {
 				decoded_data += node[0];
 				node = huffman_tree;
@@ -306,14 +316,14 @@ window.onload = function () {
 			return;
 		}
 		console.log(uploadedFile.size);
-		if(uploadedFile.size === 0){
+		if (uploadedFile.size === 0) {
 			alert("You have uploaded an empty file!\nThe compressed file might be larger in size than the uncompressed file (compression ratio might be smaller than one).\nBetter compression ratios are achieved for larger file sizes!");
 		}
-		else if(uploadedFile.size <= 350){
-			alert("The uploaded file is very small in size (" + uploadedFile.size +" bytes) !\nThe compressed file might be larger in size than the uncompressed file (compression ratio might be smaller than one).\nBetter compression ratios are achieved for larger file sizes!");
+		else if (uploadedFile.size <= 350) {
+			alert("The uploaded file is very small in size (" + uploadedFile.size + " bytes) !\nThe compressed file might be larger in size than the uncompressed file (compression ratio might be smaller than one).\nBetter compression ratios are achieved for larger file sizes!");
 		}
-		else if(uploadedFile.size < 1000){
-			alert("The uploaded file is small in size (" + uploadedFile.size +" bytes) !\nThe compressed file's size might be larger than expected (compression ratio might be small).\nBetter compression ratios are achieved for larger file sizes!");
+		else if (uploadedFile.size < 1000) {
+			alert("The uploaded file is small in size (" + uploadedFile.size + " bytes) !\nThe compressed file's size might be larger than expected (compression ratio might be small).\nBetter compression ratios are achieved for larger file sizes!");
 		}
 		onclickChanges2("Compressing your file ...\n", "Compressed");
 		var fileReader = new FileReader();
@@ -347,53 +357,55 @@ window.onload = function () {
 		document.getElementById("step2").style.display = "none";
 		document.getElementById("step3").style.display = "inline-flex";
 	}
-
 }
+
 function botVoice1(message) {
-    const speech = new SpeechSynthesisUtterance();
-	if (message==="uplaod"){
+	const speech = new SpeechSynthesisUtterance();
+	if (message === "uplaod") {
 		speech.text = "Please select an action to compress or decompress the file";
 	}
 	speech.volume = 1;
-    speech.rate = 0.75;
-    speech.pitch = 1;
-    window.speechSynthesis.speak(speech);
+	speech.rate = 0.75;
+	speech.pitch = 1;
+	window.speechSynthesis.speak(speech);
 
 }
 
-document.getElementById("submitbtn").addEventListener("click",function(){
-  botVoice1("uplaod");
+document.getElementById("submitbtn").addEventListener("click", function () {
+	botVoice1("uplaod");
 });
+
 function botVoice2(message) {
-   const speech = new SpeechSynthesisUtterance();
-	if (message==="uplaod"){
+	const speech = new SpeechSynthesisUtterance();
+	if (message === "uplaod") {
 		speech.text = "De-Compression complete and file will be downloaded automatically.";
 	}
 	speech.volume = 1;
-    speech.rate = 0.75;
-    speech.pitch = 1;
-    window.speechSynthesis.speak(speech);
+	speech.rate = 0.75;
+	speech.pitch = 1;
+	window.speechSynthesis.speak(speech);
 
 }
 
-document.getElementById("decode").addEventListener("click",function(){
-  botVoice2("uplaod");
+document.getElementById("decode").addEventListener("click", function () {
+	botVoice2("uplaod");
 });
+
 function botVoice3(message) {
-    const speech = new SpeechSynthesisUtterance();
-	if (message==="uplaod"){
+	const speech = new SpeechSynthesisUtterance();
+	if (message === "uplaod") {
 		speech.text = "Succesfully compressed the file and file will be downloaded automatically. ";
 	}
 	speech.volume = 1;
-    speech.rate = 0.75;
-    speech.pitch = 1;
-    window.speechSynthesis.speak(speech);
-
+	speech.rate = 0.75;
+	speech.pitch = 1;
+	window.speechSynthesis.speak(speech);
 }
 
-document.getElementById("encode").addEventListener("click",function(){
-  botVoice3("uplaod");
+document.getElementById("encode").addEventListener("click", function () {
+	botVoice3("uplaod");
 });
+
 function onclickChanges2(secMsg, word) {
 	decodeBtn.disabled = true;
 	encodeBtn.disabled = true;
