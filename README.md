@@ -1,6 +1,8 @@
 # File-Zipper-Huffman-Coding
 Built a program to compress and decompress text files using Huffman Coding. The codes are created using the Huffman Tree using Heaps as data structure.
 
+Link: https://heroic-malabi-dbea30.netlify.app/
+
 ![image](https://user-images.githubusercontent.com/86829818/226204670-ac0fcc13-7c68-43c3-964b-03ebda51e52d.png)
 
 ![image](https://user-images.githubusercontent.com/86829818/226204789-cfe44928-58a4-49c2-bafe-e8a2611f403d.png)
